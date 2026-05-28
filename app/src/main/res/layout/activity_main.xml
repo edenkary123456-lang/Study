@@ -9,6 +9,15 @@
     android:gravity="center_vertical"
     tools:context=".MainActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:textSize="30sp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="30dp"
+        android:textStyle="bold"/>
+
     <EditText
         android:id="@+id/editTextText"
         android:layout_width="match_parent"
@@ -35,7 +44,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="Password"
-        android:inputType="numberPassword"
+        android:inputType="textPassword"
         android:minHeight="48dp"
         android:layout_marginBottom="24dp" />
 
@@ -43,7 +52,17 @@
         android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login" />
+        android:text="Register" />
+
+    <TextView
+        android:id="@+id/textViewGoToLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:text="Already have an account? Login here"
+        android:textColor="#0000FF"
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/textView"
@@ -52,6 +71,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
         android:text=""
+        android:textColor="#FF0000"
         android:textSize="16sp"
         android:textStyle="bold" />
 

@@ -1,6 +1,8 @@
 package com.example.study;
+
 import androidx.appcompat.app.AppCompatActivity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,8 +22,8 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity {
     private EditText Name, Email, Password;
     private TextView Status;
-    private Button Login;
-
+    private Button RegisterBtn;
+    private TextView goToLogin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,12 +32,20 @@ public class MainActivity extends AppCompatActivity {
         Email = findViewById(R.id.editTextTextEmailAddress);
         Password = findViewById(R.id.editTextNumberPassword);
         Status = findViewById(R.id.textView);
-        Login = findViewById(R.id.button);
-
-        Login.setOnClickListener(new View.OnClickListener() {
+        RegisterBtn = findViewById(R.id.button);
+        goToLogin = findViewById(R.id.textViewGoToLogin);
+        RegisterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 createUser();
+            }
+        });
+        goToLogin.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, Main2Activity.class);
+                startActivity(intent);
             }
         });
     }
@@ -44,14 +54,12 @@ public class MainActivity extends AppCompatActivity {
         String emailStr = Email.getText().toString().trim();
         String passwordStr = Password.getText().toString().trim();
         String nameStr = Name.getText().toString().trim();
-
         if (emailStr.isEmpty() || passwordStr.isEmpty() || nameStr.isEmpty()) {
-            Status.setText(" fill all fields");
+            Status.setText("fill all fields");
             return;
         }
-
         ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage("Creating user");
+        pd.setMessage("Creating user...");
         pd.show();
         FBReF.auth.createUserWithEmailAndPassword(emailStr, passwordStr)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -61,18 +69,26 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Log.i("MainActivity", "createUser:success");
                             FirebaseUser user = FBReF.auth.getCurrentUser();
-                            Status.setText("Success User ID " + user.getUid());
+                            if (user != null) {
+                                String uid = user.getUid();
+                                FBReF.refUsers.child(uid).child("name").setValue(nameStr);
+                            }
+
+                            Status.setText("Success! User ID: " + user.getUid());
+                            Intent intent = new Intent(MainActivity.this, home.class);
+                            startActivity(intent);
+
                         } else {
                             Log.e("MainActivity", "createUser:failure", task.getException());
                             Exception e = task.getException();
                             if (e instanceof FirebaseAuthWeakPasswordException) {
-                                Status.setText("Password weak you need min 6 cher");
+                                Status.setText("Password weak (min 6 chars)");
                             } else if (e instanceof FirebaseAuthUserCollisionException) {
-                                Status.setText("Email already in ues");
+                                Status.setText("Email already in use");
                             } else if (e instanceof FirebaseNetworkException) {
                                 Status.setText("No internet connection");
                             } else {
-                                Status.setText("Error" + e.getMessage());
+                                Status.setText("Error: " + e.getMessage());
                             }
                         }
                     }
