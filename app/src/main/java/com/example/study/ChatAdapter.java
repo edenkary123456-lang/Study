@@ -20,7 +20,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // שימוש בקובץ ה-XML הייעודי של שורת הודעה
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_message, parent, false);
         return new ViewHolder(view);
     }
@@ -28,21 +27,16 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChatMessage message = messages.get(position);
-
-        // הצגת הטקסט של ההודעה
         holder.textView.setText(message.getText());
 
-        // עיצוב דינמי: יישור ימין/שמאל ושינוי צבעים לפי זהות השולח
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.textView.getLayoutParams();
 
         if (message.isUser()) {
-            // הודעה של המשתמש: יישור לימין ורקע כחול/כהה
             params.gravity = Gravity.END;
-            holder.textView.setBackgroundResource(android.R.drawable.toast_frame); // רקע בסיסי כהה
+            holder.textView.setBackgroundResource(android.R.drawable.toast_frame);
         } else {
-            // הודעה של ה-AI: יישור לשמאל ורקע שונה (למשל, שימוש במשאב מערכת קל)
             params.gravity = Gravity.START;
-            holder.textView.setBackgroundResource(android.R.drawable.btn_default); // רקע בהיר/אפור יותר
+            holder.textView.setBackgroundResource(android.R.drawable.btn_default);
         }
 
         holder.textView.setLayoutParams(params);
@@ -58,7 +52,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
         ViewHolder(View itemView) {
             super(itemView);
-            // קישור ה-TextView מתוך item_chat_message.xml
             textView = itemView.findViewById(R.id.textViewMessage);
         }
     }

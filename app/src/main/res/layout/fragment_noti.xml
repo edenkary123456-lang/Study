@@ -7,7 +7,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvNotifications"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingBottom="88dp"
+        android:clipToPadding="false" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddNotification"
@@ -17,6 +19,7 @@
         android:layout_alignParentEnd="true"
         android:layout_margin="24dp"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="#2196F3" />
+        app:backgroundTint="#2196F3"
+        android:contentDescription="Add Notification" />
 
 </RelativeLayout>

@@ -11,14 +11,12 @@ import com.google.ai.client.generativeai.GenerativeModel;
 import com.google.ai.client.generativeai.type.Content;
 import com.google.ai.client.generativeai.type.ImagePart;
 import com.google.ai.client.generativeai.type.Part;
-import com.google.ai.client.generativeai.type.RequestOptions;
 import com.google.ai.client.generativeai.type.TextPart;
 import com.google.ai.client.generativeai.type.GenerationConfig;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import com.google.ai.client.generativeai.type.GenerateContentResponse;
-import kotlin.Result;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.Dispatchers;
@@ -32,26 +30,25 @@ public class GeminiChatManager {
     private Chat chat;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private void startChat() {
-        chat = gemini.startChat(Collections.emptyList());
+    private void startChat(String systemPrompt) {
+        List<Content> history = new ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            Content systemContent = new Content("user", Collections.singletonList(new TextPart(systemPrompt)));
+            history.add(systemContent);
+        }
+        chat = gemini.startChat(history);
     }
 
     private GeminiChatManager(String systemPrompt) {
-        GenerationConfig config = new GenerationConfig.Builder()
-                .setSystemInstruction(new Content(Collections.singletonList(new TextPart(systemPrompt))))
-                .build();
+        GenerationConfig config = new GenerationConfig.Builder().build();
 
         gemini = new GenerativeModel(
                 "gemini-2.0-flash",
                 BuildConfig.Gemini_API_Key,
-                config, // הזרקת ה-Config המתוקן כאן
-                null,
-                new RequestOptions(),
-                null,
-                null,
-                null
+                config
         );
-        startChat();
+
+        startChat(systemPrompt);
     }
 
     public static synchronized GeminiChatManager getInstance(String systemPrompt) {
@@ -62,7 +59,7 @@ public class GeminiChatManager {
     }
 
     public void sendChatMessage(String prompt, GeminiCallback callback) {
-        chat.sendMessage(prompt, new Continuation<GenerateContentResponse>() {
+        chat.sendMessage(prompt, new Continuation<Object>() {
             @NonNull
             @Override
             public CoroutineContext getContext() {
@@ -71,14 +68,27 @@ public class GeminiChatManager {
 
             @Override
             public void resumeWith(@NonNull Object result) {
-                if (result instanceof Result.Failure) {
-                    Throwable exception = ((Result.Failure) result).exception;
-                    Log.e("GeminiChatManager", "Error: " + exception.getMessage());
-                    mainHandler.post(() -> callback.onFailure(exception));
-                } else {
-                    String responseText = ((GenerateContentResponse) result).getText();
+                if (result == null) {
+                    mainHandler.post(() -> callback.onFailure(new Exception("Null response received")));
+                    return;
+                }
+
+                String className = result.getClass().getName();
+
+                if (className.contains("Failure") || result instanceof Throwable) {
+                    Log.e("GeminiChatManager", "Chat Failure detected: " + result.toString());
+                    mainHandler.post(() -> callback.onFailure(new Exception("Gemini error or connection issue")));
+                    return;
+                }
+
+                try {
+                    GenerateContentResponse response = (GenerateContentResponse) result;
+                    String responseText = response.getText();
                     Log.i("GeminiChatManager", "Success: " + responseText);
                     mainHandler.post(() -> callback.onSuccess(responseText));
+                } catch (Exception e) {
+                    Log.e("GeminiChatManager", "Cast failed: " + e.getMessage());
+                    mainHandler.post(() -> callback.onFailure(e));
                 }
             }
         });
@@ -90,7 +100,7 @@ public class GeminiChatManager {
         parts.add(new ImagePart(photo));
         Content content = new Content(parts);
 
-        chat.sendMessage(content, new Continuation<GenerateContentResponse>() {
+        chat.sendMessage(content, new Continuation<Object>() {
             @NonNull
             @Override
             public CoroutineContext getContext() {
@@ -99,14 +109,27 @@ public class GeminiChatManager {
 
             @Override
             public void resumeWith(@NonNull Object result) {
-                if (result instanceof Result.Failure) {
-                    Throwable exception = ((Result.Failure) result).exception;
-                    Log.e("GeminiChatManager", "Photo Error: " + exception.getMessage());
-                    mainHandler.post(() -> callback.onFailure(exception));
-                } else {
-                    String responseText = ((GenerateContentResponse) result).getText();
+                if (result == null) {
+                    mainHandler.post(() -> callback.onFailure(new Exception("Null photo response received")));
+                    return;
+                }
+
+                String className = result.getClass().getName();
+
+                if (className.contains("Failure") || result instanceof Throwable) {
+                    Log.e("GeminiChatManager", "Photo Failure detected: " + result.toString());
+                    mainHandler.post(() -> callback.onFailure(new Exception("Gemini photo error or connection issue")));
+                    return;
+                }
+
+                try {
+                    GenerateContentResponse response = (GenerateContentResponse) result;
+                    String responseText = response.getText();
                     Log.i("GeminiChatManager", "Photo Success: " + responseText);
                     mainHandler.post(() -> callback.onSuccess(responseText));
+                } catch (Exception e) {
+                    Log.e("GeminiChatManager", "Photo Cast failed: " + e.getMessage());
+                    mainHandler.post(() -> callback.onFailure(e));
                 }
             }
         });

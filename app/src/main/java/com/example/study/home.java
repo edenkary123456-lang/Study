@@ -63,9 +63,8 @@ public class home extends AppCompatActivity implements NavigationView.OnNavigati
         } else if (id == R.id.nav_notifications) {
             selectedFragment = new NotiFragment();
         } else if (id == R.id.nav_ai_chat) {
-            selectedFragment = new ChatFragment(); // מסך הצ'אט (גימיני)
+            selectedFragment = new ChatFragment();
         } else if (id == R.id.nav_logout) {
-            // התנתקות וחזרה למסך הכניסה
             FBReF.auth.signOut();
             Intent intent = new Intent(home.this, Main2Activity.class);
             startActivity(intent);
